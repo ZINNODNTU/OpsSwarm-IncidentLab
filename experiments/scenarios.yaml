@@ -1,13 +1,120 @@
 scenarios:
-- {id: C01, name: Payment service crash, service: payment, fault: crash, value: true}
-- {id: C02, name: Payment error spike, service: payment, fault: error_rate, value: 0.43}
-- {id: C03, name: Bad payment deployment, service: payment, fault: bad_deployment, value: v2.1}
-- {id: C04, name: Database unavailable, service: order, fault: db_down, value: true}
-- {id: C05, name: DB connection exhaustion, service: order, fault: db_pool_exhausted, value: true}
-- {id: C06, name: API latency, service: auth, fault: latency_ms, value: 2000}
-- {id: C07, name: CPU saturation, service: inventory, fault: cpu_percent, value: 97}
-- {id: C08, name: Memory pressure, service: inventory, fault: memory_percent, value: 95}
-- {id: C09, name: External gateway timeout, service: payment, fault: external_timeout, value: true}
-- {id: C10, name: Duplicate monitoring alerts, service: payment, fault: duplicate_alerts, value: true}
-- {id: C11, name: Missing telemetry, service: payment, fault: telemetry_missing, value: true}
-- {id: C12, name: False recovery, service: payment, fault: error_rate, value: 0.43}
+  - id: C01
+    name: Payment service crash
+    description: Simulate payment process failure and unhealthy telemetry.
+    service: payment
+    fault: service_crash
+    expected_alerts: [PaymentServiceUnhealthy]
+    expected_state: unhealthy
+    recovery: restart
+    verification: payment healthy and demomart_service_healthy=1
+  - id: C02
+    name: Payment error spike
+    description: Raise payment error ratio above alert threshold.
+    service: payment
+    fault: error_rate
+    value: 0.43
+    expected_alerts: [PaymentErrorRateHigh]
+    expected_state: degraded
+    recovery: reset
+    verification: error rate returns to baseline
+  - id: C03
+    name: Bad deployment
+    description: Change simulated payment version to an unhealthy deployment version.
+    service: payment
+    fault: bad_deployment
+    value: v2.1
+    expected_alerts: [PaymentDeploymentMismatch]
+    expected_state: degraded
+    recovery: restart
+    verification: service version returns to baseline
+  - id: C04
+    name: Database unavailable
+    description: Simulate database connectivity loss.
+    service: order
+    fault: db_down
+    value: true
+    expected_alerts: [OrderDatabaseUnavailable]
+    expected_state: unhealthy
+    recovery: restart
+    verification: order healthy
+  - id: C05
+    name: DB connection exhaustion
+    description: Exhaust simulated database connection pool.
+    service: order
+    fault: db_pool_exhausted
+    value: true
+    expected_alerts: [OrderDatabasePoolExhausted]
+    expected_state: unhealthy
+    recovery: restart
+    verification: order healthy
+  - id: C06
+    name: API latency
+    description: Increase simulated API latency.
+    service: auth
+    fault: latency_ms
+    value: 2000
+    expected_alerts: [AuthLatencyHigh]
+    expected_state: degraded
+    recovery: reset
+    verification: latency returns to baseline
+  - id: C07
+    name: CPU saturation
+    description: Increase simulated CPU utilization.
+    service: inventory
+    fault: cpu_percent
+    value: 97
+    expected_alerts: [InventoryCPUSaturation]
+    expected_state: degraded
+    recovery: reset
+    verification: CPU returns to baseline
+  - id: C08
+    name: Memory pressure
+    description: Increase simulated memory utilization.
+    service: inventory
+    fault: memory_percent
+    value: 95
+    expected_alerts: [InventoryMemoryPressure]
+    expected_state: degraded
+    recovery: reset
+    verification: memory returns to baseline
+  - id: C09
+    name: External gateway timeout
+    description: Simulate an upstream gateway timeout.
+    service: payment
+    fault: external_timeout
+    value: true
+    expected_alerts: [PaymentGatewayTimeout]
+    expected_state: unhealthy
+    recovery: restart
+    verification: payment healthy
+  - id: C10
+    name: Duplicate monitoring alerts
+    description: Generate duplicate normalized monitoring events.
+    service: payment
+    fault: duplicate_alerts
+    value: true
+    expected_alerts: [PaymentServiceUnhealthy]
+    expected_state: duplicate-events
+    recovery: reset
+    verification: duplicate event IDs are detectable
+  - id: C11
+    name: Missing telemetry
+    description: Remove required application telemetry while the service remains reachable.
+    service: payment
+    fault: telemetry_missing
+    value: true
+    expected_alerts: [PaymentTelemetryMissing]
+    expected_state: telemetry-degraded
+    recovery: reset
+    verification: telemetry_present returns to 1
+  - id: C12
+    name: False recovery
+    description: Keep payment error rate elevated after a recovery-looking transition.
+    service: payment
+    fault: error_rate
+    value: 0.43
+    expected_alerts: [PaymentErrorRateHigh]
+    expected_state: degraded
+    recovery: reset
+    verification: independent health and metrics remain degraded until reset
