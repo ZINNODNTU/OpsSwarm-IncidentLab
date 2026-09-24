@@ -1,37 +1,25 @@
 services:
-  opsswarm:
+  incidentlab:
     build:
       context: .
-      dockerfile: opsswarm/Dockerfile
+      dockerfile: incidentlab/Dockerfile
     ports: ["8080:8080"]
     environment:
-      - PYTHONUNBUFFERED=1
-      - AUTH_URL=http://auth:8000
-      - ORDER_URL=http://order:8000
-      - INVENTORY_URL=http://inventory:8000
-      - PAYMENT_URL=http://payment:8000
-      - BOOKING_API_URL=http://booking-api:8000
-      - PROMETHEUS_URL=http://prometheus:9090
-      - GITHUB_REPO=${GITHUB_REPO}
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
-      - INCIDENTLAB_MONITORING_URL=http://127.0.0.1:8080/hooks/monitoring
-      - OPSSWARM_GITHUB_POLL_SECONDS=${OPSSWARM_GITHUB_POLL_SECONDS:-5}
-      - OPSWARM_DATA_DIR=/app/runtime-data
-      - OPSWARM_OPENCLAW_GATEWAY_URL=${OPSWARM_OPENCLAW_GATEWAY_URL:-http://host.docker.internal:18789}
-      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
-      - INCIDENTLAB_PUBLIC_URL=${INCIDENTLAB_PUBLIC_URL:-http://localhost:8080}
+      PYTHONUNBUFFERED: "1"
+      AUTH_URL: http://auth:8000
+      ORDER_URL: http://order:8000
+      INVENTORY_URL: http://inventory:8000
+      PAYMENT_URL: http://payment:8000
+      BOOKING_API_URL: http://booking-api:8000
+      INCIDENTLAB_DATA_DIR: /app/runtime-data/incidentlab
     volumes:
       - ./runtime-data:/app/runtime-data
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       auth: {condition: service_healthy}
       order: {condition: service_healthy}
       inventory: {condition: service_healthy}
       payment: {condition: service_healthy}
       booking-api: {condition: service_healthy}
-      prometheus: {condition: service_started}
     restart: unless-stopped
 
   auth:
@@ -60,20 +48,21 @@ services:
     ports: ["8005:8000"]
     healthcheck: {test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"], interval: 5s, timeout: 2s, retries: 10}
 
-  alertmanager:
-    image: prom/alertmanager:v0.27.0
-    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
-    volumes: ["./infrastructure/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"]
-    ports: ["9093:9093"]
   prometheus:
     image: prom/prometheus:v2.54.1
     command: ["--config.file=/etc/prometheus/prometheus.yml","--storage.tsdb.path=/prometheus","--web.enable-lifecycle"]
     volumes: ["./infrastructure/prometheus.yml:/etc/prometheus/prometheus.yml:ro","./infrastructure/alerts.yml:/etc/prometheus/rules/alerts.yml:ro"]
     depends_on:
-      alertmanager: {condition: service_started}
       auth: {condition: service_healthy}
       order: {condition: service_healthy}
       inventory: {condition: service_healthy}
       payment: {condition: service_healthy}
       booking-api: {condition: service_healthy}
+      alertmanager: {condition: service_started}
     ports: ["9090:9090"]
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    volumes: ["./infrastructure/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"]
+    ports: ["9093:9093"]
