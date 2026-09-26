@@ -11,11 +11,13 @@ class FaultInjectRequest(BaseModel):
     service: str
     fault: str
     duration_seconds: int = Field(default=30, ge=1, le=86400)
+    auto_reset: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 class RecoveryRequest(BaseModel):
-    action: str = "restart"
+    action: str = "diagnose_and_patch"
     request_id: str
+    patch: dict[str, Any] = Field(default_factory=dict)
 
 class MonitoringEvent(BaseModel):
     source: str = "incidentlab"

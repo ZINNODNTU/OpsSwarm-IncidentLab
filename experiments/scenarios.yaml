@@ -6,7 +6,7 @@ scenarios:
     fault: service_crash
     expected_alerts: [PaymentServiceUnhealthy]
     expected_state: unhealthy
-    recovery: restart
+    recovery: diagnose_and_patch
     verification: payment healthy and demomart_service_healthy=1
   - id: C02
     name: Payment error spike
@@ -16,7 +16,7 @@ scenarios:
     value: 0.43
     expected_alerts: [PaymentErrorRateHigh]
     expected_state: degraded
-    recovery: reset
+    recovery: diagnose_and_patch
     verification: error rate returns to baseline
   - id: C03
     name: Bad deployment
@@ -26,7 +26,7 @@ scenarios:
     value: v2.1
     expected_alerts: [PaymentDeploymentMismatch]
     expected_state: degraded
-    recovery: restart
+    recovery: diagnose_and_patch
     verification: service version returns to baseline
   - id: C04
     name: Database unavailable
@@ -36,7 +36,7 @@ scenarios:
     value: true
     expected_alerts: [OrderDatabaseUnavailable]
     expected_state: unhealthy
-    recovery: restart
+    recovery: diagnose_and_patch
     verification: order healthy
   - id: C05
     name: DB connection exhaustion
@@ -46,7 +46,7 @@ scenarios:
     value: true
     expected_alerts: [OrderDatabasePoolExhausted]
     expected_state: unhealthy
-    recovery: restart
+    recovery: diagnose_and_patch
     verification: order healthy
   - id: C06
     name: API latency
@@ -56,7 +56,7 @@ scenarios:
     value: 2000
     expected_alerts: [AuthLatencyHigh]
     expected_state: degraded
-    recovery: reset
+    recovery: diagnose_and_patch
     verification: latency returns to baseline
   - id: C07
     name: CPU saturation
@@ -66,7 +66,7 @@ scenarios:
     value: 97
     expected_alerts: [InventoryCPUSaturation]
     expected_state: degraded
-    recovery: reset
+    recovery: diagnose_and_patch
     verification: CPU returns to baseline
   - id: C08
     name: Memory pressure
@@ -76,7 +76,7 @@ scenarios:
     value: 95
     expected_alerts: [InventoryMemoryPressure]
     expected_state: degraded
-    recovery: reset
+    recovery: diagnose_and_patch
     verification: memory returns to baseline
   - id: C09
     name: External gateway timeout
@@ -86,7 +86,7 @@ scenarios:
     value: true
     expected_alerts: [PaymentGatewayTimeout]
     expected_state: unhealthy
-    recovery: restart
+    recovery: diagnose_and_patch
     verification: payment healthy
   - id: C10
     name: Duplicate monitoring alerts
@@ -96,7 +96,7 @@ scenarios:
     value: true
     expected_alerts: [PaymentServiceUnhealthy]
     expected_state: duplicate-events
-    recovery: reset
+    recovery: monitoring_deduplication
     verification: duplicate event IDs are detectable
   - id: C11
     name: Missing telemetry
@@ -106,7 +106,7 @@ scenarios:
     value: true
     expected_alerts: [PaymentTelemetryMissing]
     expected_state: telemetry-degraded
-    recovery: reset
+    recovery: diagnose_and_patch
     verification: telemetry_present returns to 1
   - id: C12
     name: False recovery
@@ -116,5 +116,5 @@ scenarios:
     value: 0.43
     expected_alerts: [PaymentErrorRateHigh]
     expected_state: degraded
-    recovery: reset
+    recovery: diagnose_and_patch
     verification: independent health and metrics remain degraded until reset

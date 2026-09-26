@@ -1,0 +1,32 @@
+{
+  "upstream_repository": "https://github.com/vinhphan812/OpsSwarm-Enterprise",
+  "upstream_commit": "1c712662e9093ef64a37522df800a0dfbcca9e81",
+  "checked_on": "2026-09-26",
+  "runtime_skill_set": [
+    "s1-intent-guard",
+    "s2-task-graph",
+    "s3-horizon-plan",
+    "s4-role-dispatch",
+    "s5-collab-exec",
+    "s6-resilience-guard",
+    "s7-observe-verify",
+    "s8-orchestration-hub"
+  ],
+  "functional_sync": "complete",
+  "intentional_branding_overrides": [
+    {
+      "skill": "s1-intent-guard",
+      "change": "OpsSwarm-Enterprise -> OpsSwarm"
+    },
+    {
+      "skill": "s4-role-dispatch",
+      "change": "OpsSwarm-Enterprise -> OpsSwarm"
+    }
+  ],
+  "excluded_non_runtime_skill_groups": [
+    {
+      "path": ".claude/skills/gitnexus-*",
+      "reason": "Reference repository developer/Claude code-intelligence skills. They require GitNexus MCP/CLI and are not loaded by the OpsSwarm OpenClaw runtime."
+    }
+  ]
+}

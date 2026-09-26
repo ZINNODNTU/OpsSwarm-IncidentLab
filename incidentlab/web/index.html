@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f7fb">
+  <title>OpsSwarm · Incident Simulation Lab</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div>
+          <strong>OpsSwarm</strong>
+          <small>Incident Simulation Lab</small>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Primary">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span>Overview</span></button>
+        <button class="nav-item" data-view="scenarios"><span class="nav-icon">◇</span><span>Scenarios</span><b id="navScenarioCount">—</b></button>
+        <button class="nav-item" data-view="faults"><span class="nav-icon">⚡</span><span>Fault Runner</span></button>
+        <button class="nav-item" data-view="services"><span class="nav-icon">◉</span><span>Services</span><b id="navServiceCount">—</b></button>
+        <button class="nav-item" data-view="runs"><span class="nav-icon">◷</span><span>Runs & Evidence</span><b id="navRunCount">—</b></button>
+        <button class="nav-item" data-view="monitoring"><span class="nav-icon">⌁</span><span>Integrations</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="environment-card">
+          <div class="environment-row"><span class="pulse-dot"></span><span>Demo environment</span></div>
+          <small>Controlled fault simulation</small>
+        </div>
+        <div class="sidebar-links">
+          <button type="button" onclick="openPath('/docs')">API Docs ↗</button>
+          <button type="button" onclick="openExternal('http://localhost:9090')">Prometheus ↗</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="mobile-brand">
+          <strong>OpsSwarm</strong><span>Incident Simulation Lab</span>
+        </div>
+        <div class="breadcrumb"><span>Lab</span><b>/</b><strong id="currentViewName">Overview</strong></div>
+        <div class="top-actions">
+          <div id="githubState" class="health-chip neutral"><i></i><span>GitHub checking</span></div>
+          <div id="apiState" class="health-chip neutral"><i></i><span>API checking</span></div>
+          <button class="icon-btn" title="Refresh data" onclick="refreshAll(true)">↻</button>
+          <button class="btn btn-danger btn-compact" onclick="resetAll()">Reset Lab</button>
+        </div>
+      </header>
+
+      <main>
+        <section id="dashboard" class="view active">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">INCIDENT SIMULATION CONTROL PLANE</div>
+              <h1>Operations overview</h1>
+              <p>Inject controlled faults, observe service degradation, collect evidence, and verify recovery from one console.</p>
+            </div>
+            <div class="heading-actions">
+              <button class="btn btn-secondary" onclick="showView('scenarios')">Browse scenarios</button>
+              <button class="btn btn-primary" onclick="showView('faults')">Run an incident</button>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card accent-blue">
+              <div class="metric-top"><span>Monitored services</span><span class="metric-symbol">◉</span></div>
+              <strong id="mServices">—</strong>
+              <small id="mServiceSub">Waiting for API</small>
+            </article>
+            <article class="metric-card accent-green">
+              <div class="metric-top"><span>Healthy now</span><span class="metric-symbol">✓</span></div>
+              <strong id="mHealthy">—</strong>
+              <small id="mHealthySub">Live health checks</small>
+            </article>
+            <article class="metric-card accent-orange">
+              <div class="metric-top"><span>Active incidents</span><span class="metric-symbol">!</span></div>
+              <strong id="mActive">—</strong>
+              <small>Faults awaiting recovery</small>
+            </article>
+            <article class="metric-card accent-purple">
+              <div class="metric-top"><span>Evidence runs</span><span class="metric-symbol">≡</span></div>
+              <strong id="mRuns">—</strong>
+              <small>Recorded simulation runs</small>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="panel panel-wide">
+              <div class="panel-head">
+                <div><span class="panel-kicker">LIVE TOPOLOGY</span><h2>Service health</h2></div>
+                <button class="text-btn" onclick="showView('services')">View all services →</button>
+              </div>
+              <div id="serviceOverview" class="service-overview">
+                <div class="skeleton-list"><i></i><i></i><i></i></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div><span class="panel-kicker">ACTIVITY</span><h2>Latest runs</h2></div>
+                <button class="text-btn" onclick="showView('runs')">Evidence →</button>
+              </div>
+              <div id="latestRuns" class="timeline-list">
+                <div class="empty-state compact">Loading run history…</div>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel workflow-panel">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">DEMO WORKFLOW</span>
+                <h2>Incident lifecycle</h2>
+              </div>
+              <div class="legend"><span><i class="legend-live"></i>Live lab</span><span><i class="legend-external"></i>External orchestration</span></div>
+            </div>
+            <div class="workflow">
+              <div class="flow-step live"><b>01</b><span>Fault injection</span><small>Incident Simulation Lab</small></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step live"><b>02</b><span>Monitoring event</span><small>Prometheus / Alertmanager</small></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step external"><b>03</b><span>GitHub Issue</span><small>System of record</small></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step external"><b>04</b><span>Investigation</span><small>OpsSwarm agents</small></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step external"><b>05</b><span>Recovery policy</span><small>AUTO / HUMAN / DENY</small></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step live"><b>06</b><span>Verification</span><small>PASS / FAIL evidence</small></div>
+            </div>
+          </section>
+        </section>
+
+        <section id="scenarios" class="view">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">EXPERIMENT CATALOG</div>
+              <h1>Incident scenarios</h1>
+              <p>Repeatable failure contracts for service, database, resource, network, and telemetry conditions.</p>
+            </div>
+            <div class="search-wrap">
+              <span>⌕</span><input id="scenarioSearch" type="search" placeholder="Search scenarios or services…" autocomplete="off">
+            </div>
+          </div>
+          <div class="filter-row" id="scenarioFilters">
+            <button class="filter active" data-filter="all">All</button>
+          </div>
+          <div id="scenarioList" class="scenario-grid"></div>
+        </section>
+
+        <section id="faults" class="view">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">CONTROLLED INJECTION</div>
+              <h1>Fault runner</h1>
+              <p>Select a scenario and keep the fault active until OpsSwarm or an operator performs recovery. Timed auto-reset is optional for short demos.</p>
+            </div>
+          </div>
+
+          <div class="runner-grid">
+            <section class="panel runner-panel">
+              <div class="step-label"><span>1</span> Select scenario</div>
+              <label class="field">
+                <span>Scenario contract</span>
+                <select id="scenarioSelect"></select>
+              </label>
+              <div id="faultInfo" class="scenario-preview"></div>
+
+              <div class="step-label second"><span>2</span> Configure run</div>
+              <label class="field">
+                <span><input id="autoResetInput" type="checkbox"> Enable timed auto-reset for demo mode</span>
+                <span>Auto-reset delay <b id="durationLabel">30s</b></span>
+                <input id="durationInput" type="range" min="5" max="120" step="5" value="30" disabled>
+                <div class="range-scale"><small>5 sec</small><small>120 sec</small></div>
+              </label>
+
+              <div class="runner-actions">
+                <button id="injectButton" class="btn btn-primary btn-large" onclick="injectSelected()">⚡ Inject persistent real fault</button>
+                <button class="btn btn-secondary" onclick="resetAll()">Reset all services</button>
+              </div>
+            </section>
+
+            <aside class="panel live-preview-panel">
+              <div class="panel-head">
+                <div><span class="panel-kicker">PRE-FLIGHT</span><h2>Run readiness</h2></div>
+                <span id="readyBadge" class="status-badge muted">CHECKING</span>
+              </div>
+              <div class="readiness-list">
+                <div><span>IncidentLab API</span><b id="readyApi">Checking…</b></div>
+                <div><span>Target service</span><b id="readyService">—</b></div>
+                <div><span>OpsSwarm / OpenClaw</span><b id="readyOpsswarm">Checking…</b></div>
+                <div><span>GitHub Issue creation</span><b id="readyGithub">Checking…</b></div>
+                <div><span>Evidence storage</span><b>Enabled</b></div>
+                <div><span>Runtime proof</span><b>Health + workload probe</b></div>
+                <div><span>Recovery mode</span><b id="readyRecovery">Persistent until recovery</b></div>
+              </div>
+              <div class="notice-box">
+                <strong>Simulation boundary</strong>
+                <p>The runner now verifies a live runtime effect before creating an Issue. Faults drive health to HTTP 503 and make Docker unhealthy; workload requests fail or slow down. C01 also raises a real application exception visible in Docker logs. Recovery only PASSes after health and workload return to normal.</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="services" class="view">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">RUNTIME TELEMETRY</div>
+              <h1>Services</h1>
+              <p>Current health and metrics from the five DemoMart simulator services.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="refreshAll(true)">↻ Refresh health</button>
+          </div>
+          <div id="serviceCards" class="service-card-grid"></div>
+        </section>
+
+        <section id="runs" class="view">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">TRACEABILITY</div>
+              <h1>Runs & evidence</h1>
+              <p>Inspect fault state, timestamps, GitHub linkage, and recovery evidence for each simulation run.</p>
+            </div>
+            <div class="search-wrap small">
+              <span>⌕</span><input id="runSearch" type="search" placeholder="Search run ID…" autocomplete="off">
+            </div>
+          </div>
+          <section class="panel">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Run</th><th>Scenario</th><th>Service</th><th>Fault</th><th>State</th><th>Created</th><th>GitHub</th><th></th></tr></thead>
+                <tbody id="runTableBody"><tr><td colspan="8"><div class="empty-state">Loading evidence…</div></td></tr></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="monitoring" class="view">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">CONNECTIONS</div>
+              <h1>Monitoring & integrations</h1>
+              <p>Runtime endpoints that feed the demo incident lifecycle.</p>
+            </div>
+          </div>
+
+          <div class="integration-grid">
+            <article class="integration-card">
+              <div class="integration-icon prometheus">P</div>
+              <div><h3>Prometheus</h3><p>Metrics scraping and alert rule evaluation.</p><code>localhost:9090</code></div>
+              <button class="btn btn-secondary" onclick="openExternal('http://localhost:9090')">Open ↗</button>
+            </article>
+            <article class="integration-card">
+              <div class="integration-icon alert">A</div>
+              <div><h3>Alertmanager</h3><p>Alert routing into the monitoring webhook contract.</p><code>localhost:9093</code></div>
+              <button class="btn btn-secondary" onclick="openExternal('http://localhost:9093')">Open ↗</button>
+            </article>
+            <article class="integration-card">
+              <div class="integration-icon api">API</div>
+              <div><h3>IncidentLab API</h3><p>Fault injection, recovery, services, and evidence.</p><code>/docs</code></div>
+              <button class="btn btn-secondary" onclick="openPath('/docs')">Docs ↗</button>
+            </article>
+            <article class="integration-card">
+              <div class="integration-icon api">OS</div>
+              <div><h3>OpsSwarm + OpenClaw</h3><p id="opsswarmIntegrationText">Checking orchestration runtime…</p><code id="opsswarmUrlText">—</code></div>
+              <span id="opsswarmIntegrationBadge" class="status-badge muted">CHECKING</span>
+            </article>
+            <article class="integration-card">
+              <div class="integration-icon github">GH</div>
+              <div><h3>GitHub Issues</h3><p id="githubIntegrationText">Checking repository configuration…</p><code id="githubRepoText">—</code></div>
+              <span id="githubIntegrationBadge" class="status-badge muted">CHECKING</span>
+            </article>
+          </div>
+
+          <section class="panel contract-panel">
+            <div class="panel-head">
+              <div><span class="panel-kicker">MONITORING CONTRACT</span><h2>Ingress path</h2></div>
+              <code>POST /hooks/monitoring</code>
+            </div>
+            <div class="contract-flow">
+              <span>Service metrics</span><b>→</b><span>Prometheus</span><b>→</b><span>Alertmanager</span><b>→</b><span class="highlight">/hooks/monitoring</span><b>→</b><span>GitHub / OpsSwarm</span>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <footer>
+        <span>OpsSwarm · Incident Simulation Lab</span>
+        <span id="lastUpdated">Not refreshed yet</span>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+
+  <div id="modalBackdrop" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head"><div><span class="panel-kicker">DETAIL</span><h2 id="modalTitle">Run details</h2></div><button class="icon-btn" onclick="closeModal()">×</button></div>
+      <div id="modalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,11 +1,32 @@
-param([string]$Scenario='booking-api-high-5xx')
-$ErrorActionPreference='Stop'
-Set-Location (Split-Path $PSScriptRoot -Parent)
-$body=@{scenario_id=$Scenario}|ConvertTo-Json
-$result=Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/demo/start' -ContentType 'application/json' -Body $body
+param(
+    [string]$Scenario = 'C03',
+    [int]$DurationSeconds = 600
+)
+
+$ErrorActionPreference = 'Stop'
+$Base = 'http://127.0.0.1:8080'
+
+$scenarioData = Invoke-RestMethod -Uri "$Base/api/scenarios/$Scenario" -TimeoutSec 10
+$body = @{
+    scenario_id = $Scenario
+    service = $scenarioData.service
+    fault = $scenarioData.fault
+    duration_seconds = $DurationSeconds
+    auto_reset = $false
+    metadata = @{ demo = 'competition'; requested_by = 'demo-run.ps1' }
+} | ConvertTo-Json -Depth 8
+
+Write-Host ('Injecting ' + $Scenario + ' :: ' + $scenarioData.name)
+$result = Invoke-RestMethod -Method Post -Uri "$Base/api/faults/inject" -ContentType 'application/json' -Body $body -TimeoutSec 60
 $result | ConvertTo-Json -Depth 20
-if ($result.github_issue_url) {
-  Write-Host "`nGitHub system-of-record: $($result.github_issue_url)"
-}
-Write-Host "Wait for the OpsSwarm policy/decision comment on that Issue."
-Write-Host "If human authority is required, use the exact /opsswarm approve <option-id> command shown there; this script never approves recovery itself."
+
+$issue = $result.opsswarm.issue_number
+if (-not $issue) { $issue = $result.github.issue_number }
+if (-not $issue) { throw 'Fault was injected but no GitHub Issue number was returned.' }
+
+Write-Host ''
+Write-Host ('GitHub Issue #' + $issue)
+$repo = (Invoke-RestMethod -Uri "$Base/api/integrations/github" -TimeoutSec 10).repo
+Write-Host ('https://github.com/' + $repo + '/issues/' + $issue)
+Write-Host ('IncidentLab run: ' + $result.run_id)
+Write-Host 'OpsSwarm is processing the incident in the background.'

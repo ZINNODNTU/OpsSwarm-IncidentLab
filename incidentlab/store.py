@@ -7,7 +7,20 @@ RUNS = ROOT / "runs"
 RUNS.mkdir(parents=True, exist_ok=True)
 
 def new_run(scenario_id: str, service: str, fault: str) -> dict:
-    run = {"run_id": f"incidentlab-run-{uuid.uuid4().hex[:12]}", "scenario_id": scenario_id, "service": service, "fault": fault, "started_at": utc_now(), "state": "fault_injected", "timeline": [], "recovery_events": []}
+    now = utc_now()
+    run_id = f"incidentlab-run-{uuid.uuid4().hex[:12]}"
+    run = {
+        "run_id": run_id,
+        "scenario_id": scenario_id,
+        "service": service,
+        "fault": fault,
+        "created_at": now,
+        "started_at": now,
+        "state": "preparing",
+        "timeline": [],
+        "recovery_events": [],
+        "evidence_file": f"runtime-data/incidentlab/runs/{run_id}.json",
+    }
     save(run)
     return run
 

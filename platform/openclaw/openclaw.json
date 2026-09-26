@@ -1,0 +1,73 @@
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    },
+    "http": {
+      "endpoints": {
+        "responses": {
+          "enabled": true
+        }
+      }
+    },
+    "controlUi": {
+      "allowedOrigins": [
+        "http://127.0.0.1:18789",
+        "http://localhost:18789"
+      ]
+    }
+  },
+  "tools": {
+    "profile": "coding"
+  },
+  "agents": {
+    "ownership": "explicit",
+    "defaults": {
+      "skipBootstrap": true,
+      "timeoutSeconds": 600,
+      "model": {
+        "primary": "minimax/MiniMax-M2.7-highspeed"
+      }
+    },
+    "entries": {
+      "opsswarm-incident-manager": {
+        "workspace": "/opt/opsswarm/workspaces/opsswarm-incident-manager",
+        "tools": { "profile": "coding", "deny": ["exec", "process", "write", "edit", "apply_patch"] }
+      },
+      "opsswarm-observability-investigator": {
+        "workspace": "/opt/opsswarm/workspaces/opsswarm-observability-investigator",
+        "tools": { "profile": "coding", "deny": ["write", "edit", "apply_patch"] }
+      },
+      "opsswarm-application-investigator": {
+        "workspace": "/opt/opsswarm/workspaces/opsswarm-application-investigator",
+        "tools": { "profile": "coding", "deny": ["exec", "process", "write", "edit", "apply_patch"] }
+      },
+      "opsswarm-infrastructure-investigator": {
+        "workspace": "/opt/opsswarm/workspaces/opsswarm-infrastructure-investigator",
+        "tools": { "profile": "coding", "deny": ["exec", "process", "write", "edit", "apply_patch"] }
+      },
+      "opsswarm-database-investigator": {
+        "workspace": "/opt/opsswarm/workspaces/opsswarm-database-investigator",
+        "tools": { "profile": "coding", "deny": ["exec", "process", "write", "edit", "apply_patch"] }
+      },
+      "opsswarm-recovery-responder": {
+        "workspace": "/opt/opsswarm/workspaces/opsswarm-recovery-responder",
+        "tools": { "profile": "coding" }
+      },
+      "opsswarm-communications-postmortem": {
+        "workspace": "/opt/opsswarm/workspaces/opsswarm-communications-postmortem",
+        "tools": { "profile": "coding", "deny": ["exec", "process", "write", "edit", "apply_patch"] }
+      }
+    }
+  },
+  "skills": {
+    "load": {
+      "extraDirs": [
+        "/opt/opsswarm/skills"
+      ]
+    }
+  }
+}

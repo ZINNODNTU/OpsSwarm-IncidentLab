@@ -1,35 +1,43 @@
 {
-  "name": "OpsSwarm IncidentLab",
-  "version": "1.1",
+  "name": "OpsSwarm",
+  "version": "1.2.1",
+  "runtime": "docker-compose",
+  "agents": [
+    "opsswarm-incident-manager",
+    "opsswarm-observability-investigator",
+    "opsswarm-application-investigator",
+    "opsswarm-infrastructure-investigator",
+    "opsswarm-database-investigator",
+    "opsswarm-recovery-responder",
+    "opsswarm-communications-postmortem"
+  ],
   "skills": [
-    "s1_incident_intake",
-    "s2_severity_assessment",
-    "s3_evidence_collector",
-    "s4_response_orchestrator",
-    "s5_stakeholder_communication",
-    "s6_recovery_verification",
-    "s7_post_incident_review"
+    "s1-intent-guard",
+    "s2-task-graph",
+    "s3-horizon-plan",
+    "s4-role-dispatch",
+    "s5-collab-exec",
+    "s6-resilience-guard",
+    "s7-observe-verify",
+    "s8-orchestration-hub"
   ],
-  "scenarios": [
-    "C01",
-    "C02",
-    "C03",
-    "C04",
-    "C05",
-    "C06",
-    "C07",
-    "C08",
-    "C09",
-    "C10",
-    "C11",
-    "C12"
-  ],
-  "baseline_note": "B0 scripted, not human study",
+  "skill_sync": {
+    "upstream_repository": "https://github.com/vinhphan812/OpsSwarm-Enterprise",
+    "upstream_commit": "1c712662e9093ef64a37522df800a0dfbcca9e81",
+    "checked_on": "2026-09-26",
+    "functional_sync": "complete"
+  },
+  "scenarios": ["C01","C02","C03","C04","C05","C06","C07","C08","C09","C10","C11","C12"],
+  "deployment": {
+    "openclaw_image": "ghcr.io/openclaw/openclaw:2026.9.6",
+    "model": "minimax/MiniMax-M2.7-highspeed",
+    "direct_source_repair": true,
+    "docker_socket_exposed": false
+  },
   "observability": {
     "prometheus": true,
     "alert_rules": true,
     "alertmanager": true,
-    "opsswarm_webhook": "/api/v1/alertmanager",
-    "automatic_incident_trigger_path": true
+    "monitoring_ingress": "/hooks/monitoring"
   }
 }
