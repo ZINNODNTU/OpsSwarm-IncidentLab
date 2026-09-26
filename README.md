@@ -61,32 +61,7 @@ OpenClaw is bound to loopback on the host by default. Inter-container communicat
 
 ## Quick start
 
-### 1. Configure secrets
-
-Linux/macOS shell:
-
-```bash
-cp .env.example .env
-```
-
-Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Fill at least:
-
-```dotenv
-GITHUB_REPO=ZINNODNTU/OpsSwarm-IncidentLab
-GITHUB_TOKEN=...
-OPENCLAW_GATEWAY_TOKEN=...
-MINIMAX_API_KEY=...
-```
-
-Never commit the completed `.env` file.
-
-### 2. Start the stack
+### 1. Start the stack
 
 Linux:
 
@@ -102,7 +77,7 @@ scripts\demo-start.cmd
 
 Both launchers build the same Compose stack and wait for core health checks. The Linux server launcher additionally runs `scripts/server-smoke.sh`; the Windows launcher validates IncidentLab, OpsSwarm, and GitHub readiness before returning.
 
-### 3. Run the preflight
+### 2. Run the preflight
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\competition-preflight.ps1
@@ -110,7 +85,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\competition-pr
 
 Add `-FullTests` to include the Python test suite and packaged OpsSwarm compile check.
 
-### 4. Run an end-to-end incident
+### 3. Run an end-to-end incident
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\demo-e2e.ps1 -Scenario C03
