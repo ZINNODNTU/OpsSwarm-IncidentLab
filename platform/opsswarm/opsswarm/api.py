@@ -11,6 +11,7 @@ from .config import load_config
 from .github_client import GitHubClient
 from .openclaw import OpenClawClient
 from .orchestrator import Orchestrator
+from .models import RunState
 from .webhook import verify_signature
 
 cfg = load_config()
@@ -119,14 +120,32 @@ async def _start_issue_background(number: int, delivery_id: str | None) -> None:
     try:
         await engine.start_issue(number, delivery_id)
         logger.info("GitHub issue #%s accepted and processed by OpsSwarm", number)
-    except Exception:
+    except Exception as exc:
         logger.exception("GitHub issue #%s was received but processing failed", number)
+        run = engine.runs.get(number)
+        if run is not None:
+            try:
+                run.error = f"{type(exc).__name__}: {exc}"
+                if run.state not in {RunState.RESOLVED, RunState.FAILED, RunState.ABORTED}:
+                    run.transition(RunState.FAILED, enforcement="audit")
+                engine.store.save(run)
+                engine.ev.append(run.run_id, "run.processing_failed", {
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                    "state": run.state.value,
+                })
+            except Exception:
+                logger.exception("Could not persist processing failure for GitHub issue #%s", number)
         try:
+            detail = str(exc).strip() or "no exception detail"
+            if len(detail) > 900:
+                detail = detail[:900] + "..."
             await gh.comment(
                 number,
-                "## OpsSwarm — processing failed\\n\\n"
-                "The GitHub webhook was received, but the incident run failed during processing. "
-                "Check the OpsSwarm service log for the exception.",
+                "## OpsSwarm — processing failed\n\n"
+                f"The incident run failed during processing at state `{run.state.value if run else 'unknown'}`.\n\n"
+                f"**{type(exc).__name__}:** `{detail}`\n\n"
+                "The run has been marked FAILED and the error was persisted in OpsSwarm evidence.",
             )
         except Exception:
             logger.exception("Could not report processing failure on GitHub issue #%s", number)
